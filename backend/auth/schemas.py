@@ -14,8 +14,6 @@ class UserLoginSchema(BaseModel):
 
 
 class UserRegistrationSchema(UserLoginSchema):
-    username: str = Field(max_length=255)
-
     @field_validator('password')
     @classmethod
     def validate_password(cls, value):

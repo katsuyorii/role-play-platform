@@ -18,7 +18,7 @@ class UserModel(BaseModel):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password: Mapped[str]
 
-    username: Mapped[str] = mapped_column(String(255))
+    username: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)
     role: Mapped[str] = mapped_column(String(5), default=UserRole.USER)
 
     # avatar_url
