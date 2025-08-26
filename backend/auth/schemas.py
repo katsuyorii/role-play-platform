@@ -20,3 +20,7 @@ class UserRegistrationSchema(UserLoginSchema):
     @classmethod
     def validate_password(cls, value):
         return validator_password_complexity(value)
+
+class UserCreatedResponse(BaseModel):
+    email: EmailStr
+    username: str
