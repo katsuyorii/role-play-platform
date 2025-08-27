@@ -1,15 +1,38 @@
 from fastapi import Response
 
+from time import time
+
 from datetime import datetime, timedelta, timezone
 
 from users.models import UserModel
 from users.repositories import UsersRepository
 from src.settings import jwt_settings
+from core.repositories.redis_base import RedisBaseRepository
 from core.utils.password import hashing_password, verify_password
 from core.utils.jwt import create_jwt_token
 
 from .schemas import AccessTokenResponseSchema, UserRegistrationSchema, UserLoginSchema
 from .exceptions import EmailAlreadyRegistered, EmailOrPasswordIncorrect
+
+
+class BlacklistTokensService:
+    def __init__(self, redis_repository: RedisBaseRepository):
+        self.__redis_repository = redis_repository
+        self.__key_prefix = 'blacklist'
+    
+    async def set_token_to_blacklist(self, payload: dict) -> None:
+        exp = payload.get('exp')
+        jti = payload.get('jti')
+
+        current_time = int(time())
+        ttl = exp - current_time
+
+        await self.__redis_repository.setex(f'{self.__key_prefix}:{jti}', 1, ttl)
+    
+    async def is_token_blacklisted(self, payload: dict) -> bool:
+        jti = payload.get('jti')
+
+        return await self.__redis_repository.exists(f'{self.__key_prefix}:{jti}')
 
 
 class JWTTokensService:
