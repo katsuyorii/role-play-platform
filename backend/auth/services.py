@@ -1,14 +1,47 @@
+from fastapi import Response
+
+from datetime import datetime, timedelta, timezone
+
 from users.models import UserModel
 from users.repositories import UsersRepository
+from src.settings import jwt_settings
 from core.utils.password import hashing_password
+from core.utils.jwt import create_jwt_token
 
 from .schemas import UserRegistrationSchema
 from .exceptions import EmailAlreadyRegistered
 
 
+class JWTTokensService:
+    def __init__(self, access_token_minutes_expires: int = jwt_settings.JWT_ACCESS_TOKEN_MINUTES_EXPIRES, refresh_token_days_expires: int = jwt_settings.JWT_REFRESH_TOKEN_DAYS_EXPIRES):
+        self.__access_token_minutes_expires = access_token_minutes_expires
+        self.__refresh_token_days_expires = refresh_token_days_expires
+    
+    def create_access_token(self, payload: dict) -> str:
+        access_token = create_jwt_token(payload, timedelta(minutes=self.__access_token_minutes_expires))
+
+        return access_token
+    
+    def create_refresh_token(self, payload: dict) -> str:
+        refresh_token = create_jwt_token(payload, timedelta(days=self.__refresh_token_days_expires))
+
+        return refresh_token
+    
+    def set_refresh_token_to_cookies(self, value: str, response: Response) -> None:
+        response.set_cookie(
+            key='refresh_token',
+            value=value,
+            expires=datetime.now(timezone.utc) + timedelta(days=self.__refresh_token_days_expires),
+            secure=True,
+            httponly=True,
+            samesite='strict',
+        )
+
+
 class AuthService:
-    def __init__(self, users_repository: UsersRepository):
+    def __init__(self, users_repository: UsersRepository, jwt_tokens_service: JWTTokensService):
         self.users_repository = users_repository
+        self.jwt_tokens_service = jwt_tokens_service
     
     async def registration(self, user_data: UserRegistrationSchema) -> UserModel:
         user = await self.users_repository.get_by_email(user_data.email)
