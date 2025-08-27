@@ -5,11 +5,11 @@ from datetime import datetime, timedelta, timezone
 from users.models import UserModel
 from users.repositories import UsersRepository
 from src.settings import jwt_settings
-from core.utils.password import hashing_password
+from core.utils.password import hashing_password, verify_password
 from core.utils.jwt import create_jwt_token
 
-from .schemas import UserRegistrationSchema
-from .exceptions import EmailAlreadyRegistered
+from .schemas import AccessTokenResponseSchema, UserRegistrationSchema, UserLoginSchema
+from .exceptions import EmailAlreadyRegistered, EmailOrPasswordIncorrect
 
 
 class JWTTokensService:
@@ -59,3 +59,23 @@ class AuthService:
         created_user = await self.users_repository.create(user_data_dict)
 
         return created_user
+    
+    async def authentication(self, user_data: UserLoginSchema, response: Response) -> AccessTokenResponseSchema:
+        user = await self.users_repository.get_by_email(user_data.email)
+
+        if user is None or not verify_password(user_data.password, user.password):
+            raise EmailOrPasswordIncorrect()
+        
+        # ----------------------
+        # Проверка на активированную учетную запись (после добавления Celery + RabbitMQ)
+        # if not user.is_active
+        # ----------------------
+
+        paylaod = {'sub': str(user.id)}
+
+        access_token = self.jwt_tokens_service.create_access_token(paylaod)
+        refresh_token = self.jwt_tokens_service.create_refresh_token(paylaod)
+
+        self.jwt_tokens_service.set_refresh_token_to_cookies(refresh_token, response)
+
+        return AccessTokenResponseSchema(access_token=access_token)
