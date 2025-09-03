@@ -102,6 +102,8 @@ class AuthService:
 
         self.jwt_tokens_service.set_refresh_token_to_cookies(refresh_token, response)
 
+        user.last_login = datetime.now(timezone.utc)
+
         return AccessTokenResponseSchema(access_token=access_token)
 
     async def logout(self, request: Request, response: Response) -> dict[str, str]:
