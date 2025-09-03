@@ -134,7 +134,7 @@ class AuthService:
 
         await self.blacklist_tokens_service.set_token_to_blacklist(payload)
 
-        user = await self.users_repository.get(int(payload.get('sub')))
+        user = await self.users_repository.get(payload.get('sub'))
 
         new_paylaod = {'sub': str(user.id)}
 
