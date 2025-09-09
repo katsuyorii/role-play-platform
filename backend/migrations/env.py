@@ -12,6 +12,7 @@ from src.settings import database_settings
 from core.models.base import BaseModel
 
 from users.models import UserModel
+from announcements.models import NsfwFetishModel, NsfwTabooModel, FandomModel, TagModel, AnnouncementModel
 
 
 # this is the Alembic Config object, which provides
