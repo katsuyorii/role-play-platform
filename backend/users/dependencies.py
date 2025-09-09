@@ -23,7 +23,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), users_repository
     # Проверка отсутствия пользователя в блеклисте
     # ---------------------
 
-    current_user = await users_repository.get(int(payload.get('sub')))
+    current_user = await users_repository.get(payload.get('sub'))
 
     return current_user
 
