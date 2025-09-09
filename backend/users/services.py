@@ -1,3 +1,5 @@
+from fastapi import Response
+
 from .models import UserModel
 from .repositories import UsersRepository
 from .schemas import UserUpdateSchema
@@ -17,3 +19,8 @@ class UsersService:
         await self.users_repository.update(self.current_user, updated_user_data_dict)
 
         return self.current_user
+    
+    async def delete_current_user(self, response: Response) -> None:
+        self.users_repository.delete(self.current_user)
+
+        response.delete_cookie('refresh_token')
