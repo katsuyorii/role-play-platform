@@ -10,6 +10,7 @@ from alembic import context
 from src.settings import database_settings
 
 from core.models.base import BaseModel
+from users.models import UserModel
 
 
 # this is the Alembic Config object, which provides
