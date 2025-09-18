@@ -12,4 +12,4 @@ auth_router = APIRouter(
 
 @auth_router.post('/registration', response_model=UserCreatedResponse, status_code=status.HTTP_201_CREATED)
 async def registration_user(user_data: UserRegistrationSchema, auth_service: AuthService = Depends(get_auth_service)):
-    pass
+    return await auth_service.registration(user_data)
